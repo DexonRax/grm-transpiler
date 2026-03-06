@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+
+
+
+
+typedef struct {
+	int age;
+} Dog;
+
+impl Dog {
+	void init(){
+		Dog.age = 10;
+	}
+
+	void bark(){
+		printf("bark bark\n");
+	}
+}
+
+typedef struct {
+	float height;
+	float weight;
+	int age;
+	Dog* dog;
+} Human;
+
+impl Human{
+	void init(int age){
+		Human.age = age;
+	}
+	
+	int get_age(){
+		return Human.age;
+	}
+}
+
+typedef struct{
+	Human* residents;
+} House;
+
+impl House{
+	Human* get_resident(int index){
+		if(House.residents != NULL){
+			return &House.residents[index];
+		}
+		return NULL;
+	}
+}
+
+
+int main(){
+	
+	House house;
+	
+	const int num_residents = 4;
+	Human* residents = malloc(sizeof(Human)*num_residents);
+	
+	for(int i = 0; i < 4; i++){
+		residents[i].init((i*10) + 10);
+	}
+	
+	house.residents = residents;
+	
+	Dog* doge = malloc(sizeof(Dog));
+	house.residents[0].dog = doge;
+	
+	house.residents[0].dog->bark();
+	
+	printf("Resident 0 age: %d\n", house.residents[0].get_age());
+	
+	return 0;
+}
