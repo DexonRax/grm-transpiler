@@ -259,14 +259,16 @@ def transpile_grm(input_file, output_file):
 GRM_MAKE_FILE = "grm-make"
 
 def parse_grm_make():
-    """Parse grm-make and return (cc, inputs, libs, out). All fields are optional."""
-    cc     = "cc"
-    inputs = []
-    libs   = []
-    out    = "a.out"
+    """Parse grm-make and return (cc, inputs, inc_paths, lib_paths, libs, out). All fields optional."""
+    cc        = "cc"
+    inputs    = []
+    inc_paths = []
+    lib_paths = []
+    libs      = []
+    out       = "a.out"
 
     if not os.path.exists(GRM_MAKE_FILE):
-        return cc, inputs, libs, out
+        return cc, inputs, inc_paths, lib_paths, libs, out
 
     log_info(f"Reading '{GRM_MAKE_FILE}'...")
     with open(GRM_MAKE_FILE, 'r') as f:
@@ -280,24 +282,30 @@ def parse_grm_make():
 
             if key == "CC":
                 cc = value
-                log_process(f"Compiler : {cc}")
+                log_process(f"Compiler      : {cc}")
             elif key == "IN":
                 inputs = value.split()
-                log_process(f"Inputs   : {' '.join(inputs)}")
+                log_process(f"Inputs        : {' '.join(inputs)}")
+            elif key == "IP":
+                inc_paths = value.split()
+                log_process(f"Include paths : {' '.join(inc_paths)}")
+            elif key == "LP":
+                lib_paths = value.split()
+                log_process(f"Library paths : {' '.join(lib_paths)}")
             elif key == "L":
                 libs = value.split()
-                log_process(f"Libraries: {' '.join(libs)}")
+                log_process(f"Libraries     : {' '.join(libs)}")
             elif key == "OUT":
                 out = value
-                log_process(f"Output   : {out}")
+                log_process(f"Output        : {out}")
 
-    return cc, inputs, libs, out
+    return cc, inputs, inc_paths, lib_paths, libs, out
 
 
 if __name__ == "__main__":
     import subprocess
 
-    cc, grm_make_inputs, libs, out = parse_grm_make()
+    cc, grm_make_inputs, inc_paths, lib_paths, libs, out = parse_grm_make()
 
     # CLI args override IN from grm-make; if neither provided, bail out
     if sys.argv[1:]:
@@ -305,7 +313,7 @@ if __name__ == "__main__":
     elif grm_make_inputs:
         grm_files = grm_make_inputs
     else:
-        print(f"Usage: python grm.py <file1.grm> [file2.grm ...]")
+        print(f"Usage: python grmt.py <file1.grm> [file2.grm ...]")
         print(f"       (or set IN in '{GRM_MAKE_FILE}')")
         sys.exit(1)
 
@@ -317,8 +325,9 @@ if __name__ == "__main__":
         c_files.append(c_file)
 
     # Compile
-    lib_flags = [f"-l{lib}" for lib in libs]
-    cmd       = [cc] + c_files + lib_flags + ["-o", out]
+    inc_flags = [f"-I{p}" for p in inc_paths]
+    lib_flags = [f"-L{p}" for p in lib_paths] + [f"-l{lib}" for lib in libs]
+    cmd       = [cc] + c_files + inc_flags + lib_flags + ["-o", out]
 
     log_info(f"Compiling: {' '.join(cmd)}")
     result = subprocess.run(cmd)
@@ -326,5 +335,9 @@ if __name__ == "__main__":
     if result.returncode != 0:
         print(f"\033[91m[ERROR]\033[0m Compiler exited with code {result.returncode}.")
         sys.exit(result.returncode)
+
+    for c_file in c_files:
+        os.remove(c_file)
+        log_process(f"Removed {c_file}")
 
     log_success(f"Build complete! Binary: {out}")

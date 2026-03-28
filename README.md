@@ -63,18 +63,22 @@ int main() {
 Create a `grm-make` file next to your sources:
 
 ```
-CC  = gcc
+CC  = cc
 IN  = main.grm second.grm
- L  = raylib m
+IP  = /usr/local/include ./vendor/include
+LP  = /usr/local/lib ./vendor/lib
+L   = raylib m
 OUT = main.exe
 ```
 
-| Key | Description |
-|-----|-------------|
-| `CC` | Compiler to use (e.g. `gcc`, `clang`, `cc`) |
-| `IN` | Space-separated list of `.grm` source files |
-| `L` | Space-separated libraries to link (without the `-l` prefix) |
-| `OUT` | Output binary name |
+| Key | Flag | Description |
+|-----|------|-------------|
+| `CC`  | | Compiler to use (e.g. `gcc`, `clang`, `cc`) |
+| `IN`  | | Space-separated list of `.grm` source files |
+| `IP`  | `-I` | Space-separated include search paths |
+| `LP`  | `-L` | Space-separated library search paths |
+| `L`   | `-l` | Space-separated libraries to link (without the `-l` prefix) |
+| `OUT` | `-o` | Output binary name |
 
 All keys are optional and whitespace around `=` is ignored. Then just run:
 
@@ -85,12 +89,12 @@ python grmt.py
 This transpiles every file listed in `IN`, then compiles them all in one shot:
 
 ```bash
-gcc main.c second.c -lraylib -lm -o main.exe
+cc main.c second.c -I/usr/local/include -I./vendor/include -L/usr/local/lib -L./vendor/lib -lraylib -lm -o main.exe
 ```
 
 ### Option B — Quick one-off compile
 
-Pass files directly on the command line to skip `IN` in `grm-make` (all other settings like `CC`, `L`, and `OUT` are still read from `grm-make` if present):
+Pass files directly on the command line to skip `IN` in `grm-make` (all other settings like `CC`, `IP`, `LP`, `L`, and `OUT` are still read from `grm-make` if present):
 
 ```bash
 python grmt.py main.grm
