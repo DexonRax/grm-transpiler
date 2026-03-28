@@ -9,12 +9,13 @@
 * **Explicit Member Access**: Use `StructName.member` inside an `impl` block to automatically map to `self->member`, avoiding variable shadowing.
 * **Short Struct Syntax**: Define structs with `struct Foo { ... };` instead of the verbose `typedef struct { ... } Foo;`.
 * **Auto-Compilation**: Transpiles and compiles in one step — no manual `gcc` invocation needed.
+* **Automatic Cleanup**: Generated `.c` files are deleted after a successful build, leaving only your source and binary.
 * **Clean Output**: Generates human-readable, perfectly indented C code that follows standard conventions.
 * **Zero Overhead**: It's a transpiler, not a runtime. Your code remains as fast as pure C.
 
 ## 🚀 How it Works
 
-The transpiler reads `.grm` files, parses your struct definitions and `impl` blocks, rewrites them into valid C, then immediately compiles the result using the settings in your `grm-make` file.
+The transpiler reads `.grm` files, parses your struct definitions and `impl` blocks, rewrites them into valid C, compiles the result using the settings in your `grm-make` file, then deletes the intermediate `.c` files. If compilation fails, the `.c` files are kept so you can inspect them.
 
 ### 1. The Input (`main.grm`)
 
@@ -33,25 +34,6 @@ impl Human {
 int main() {
     Human john = {180, 75.5};
     john.printInfo(); // Method-style call!
-    return 0;
-}
-```
-
-### 2. The Output (`main.c`)
-
-```c
-typedef struct {
-    int height;
-    float weight;
-} Human;
-
-void Human_printInfo(Human* self) {
-    printf("Height: %d, Weight: %.2f\n", self->height, self->weight);
-}
-
-int main() {
-    Human john = {180, 75.5};
-    Human_printInfo(&john);
     return 0;
 }
 ```
